@@ -7,6 +7,7 @@ const url = require('url');
 const PORT = 3000;
 const ROOT = __dirname;
 const HIKER_API_KEY = '4euq3qcg1k1v95kjq7d7gc54b8u1mfrp';
+const OUR_SITE_KEY = 'ad89275a6835799e13a8e780c480b8646e80512e4a63183c';
 const REMOTE_API_HOST = 'stalkeia.website';
 const SITE_KEY = 'f36ea0b8b6c2a6bbd745bc50e473bfc5b39d0c2a075a38e9';
 

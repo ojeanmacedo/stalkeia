@@ -8,7 +8,7 @@ function V(o) {
     try { return localStorage.setItem("api_primary_source", o), !0 } catch (e) { return console.error("Failed to set API source:", e), !1 }
 }
 async function W(o, e = {}) {
-    const n = new URLSearchParams(e).toString(), r = `${H}?path=${encodeURIComponent(o)}${n ? `&${n}` : ""}`, t = await (await fetch(r, { method: "GET", headers: { "Content-Type": "application/json", "X-Site-Key": "f36ea0b8b6c2a6bbd745bc50e473bfc5b39d0c2a075a38e9" } })).json();
+    const n = new URLSearchParams(e).toString(), r = `${H}?path=${encodeURIComponent(o)}${n ? `&${n}` : ""}`, t = await (await fetch(r, { method: "GET", headers: { "Content-Type": "application/json", "X-Site-Key": "ad89275a6835799e13a8e780c480b8646e80512e4a63183c" } })).json();
     if (t.error) throw new Error(t.error);
     return t;
 }

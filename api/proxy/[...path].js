@@ -3,6 +3,7 @@ const http = require('http');
 const url = require('url');
 
 const HIKER_API_KEY = '4euq3qcg1k1v95kjq7d7gc54b8u1mfrp';
+const OUR_SITE_KEY = 'ad89275a6835799e13a8e780c480b8646e80512e4a63183c';
 const BACKUP_SITE_KEY = 'f36ea0b8b6c2a6bbd745bc50e473bfc5b39d0c2a075a38e9';
 const BACKUP_REMOTE_HOST = 'stalkeia.website';
 
@@ -97,7 +98,24 @@ function forwardToBackup(req, res, targetPath) {
 }
 
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers['origin'] || '';
+  const referer = req.headers['referer'] || '';
+  const host = req.headers['host'] || '';
+  const siteKey = req.headers['x-site-key'] || '';
+
+  // Permite apenas requisições vindas dos seus domínios autorizados ou localhost
+  const isAllowedOrigin = 
+    origin.includes('stalkea.top') || 
+    origin.includes('vercel.app') || 
+    origin.includes('localhost') || 
+    referer.includes('stalkea.top') || 
+    referer.includes('vercel.app') || 
+    referer.includes('localhost') ||
+    host.includes('stalkea.top') ||
+    host.includes('vercel.app') ||
+    host.includes('localhost');
+
+  res.setHeader('Access-Control-Allow-Origin', origin || '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
 
@@ -109,6 +127,16 @@ module.exports = async (req, res) => {
   const parsedUrl = url.parse(req.url || '', true);
   const pathname = parsedUrl.pathname || '';
   const originalUrl = req.url || '';
+
+  // Validação de segurança: exige domínio autorizado ou chave secreta válida
+  if (!pathname.includes('image-proxy.php')) {
+    const isValidSecret = siteKey === OUR_SITE_KEY || siteKey === BACKUP_SITE_KEY;
+    if (!isAllowedOrigin && !isValidSecret) {
+      res.statusCode = 403;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Acesso negado: Origem não autorizada.' }));
+    }
+  }
 
   let targetPath = originalUrl;
   if (!targetPath.startsWith('/api/proxy/')) {
