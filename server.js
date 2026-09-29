@@ -6,6 +6,7 @@ const url = require('url');
 
 const PORT = 3000;
 const ROOT = __dirname;
+const HIKER_API_KEY = '4euq3qcg1k1v95kjq7d7gc54b8u1mfrp';
 const REMOTE_API_HOST = 'stalkeia.website';
 const SITE_KEY = 'f36ea0b8b6c2a6bbd745bc50e473bfc5b39d0c2a075a38e9';
 
@@ -23,6 +24,53 @@ const MIME_TYPES = {
   '.woff': 'font/woff',
   '.woff2': 'font/woff2'
 };
+
+function fetchHikerDirect(reqPath, queryObj) {
+  return new Promise((resolve, reject) => {
+    let hikerPath = queryObj.path || reqPath.replace('/api/proxy/hikerapi.php', '');
+    if (!hikerPath.startsWith('/')) {
+      hikerPath = '/' + hikerPath;
+    }
+
+    const q = { ...queryObj };
+    delete q.path;
+    const queryStr = new URLSearchParams(q).toString();
+    const fullPath = `${hikerPath}${queryStr ? '?' + queryStr : ''}`;
+
+    const options = {
+      hostname: 'api.hikerapi.com',
+      port: 443,
+      path: fullPath,
+      method: 'GET',
+      headers: {
+        'x-access-key': HIKER_API_KEY,
+        'accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      },
+      timeout: 15000
+    };
+
+    const req = https.get(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 200 && res.statusCode < 300 && !parsed.error && parsed.state !== false) {
+            resolve({ statusCode: res.statusCode, data: parsed });
+          } else {
+            reject(new Error(`HikerAPI returned status ${res.statusCode}: ${data}`));
+          }
+        } catch (e) {
+          reject(new Error(`Invalid JSON from HikerAPI: ${e.message}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('HikerAPI direct timeout')); });
+  });
+}
 
 function forwardToRemote(req, res, targetPath, postData = null) {
   const options = {
@@ -219,8 +267,15 @@ const server = http.createServer(async (req, res) => {
 
   // 2. HikerAPI compatibility (Instagram profile, following, posts)
   if (pathname === '/api/proxy/hikerapi.php') {
-    forwardToRemote(req, res, req.url);
-    return;
+    try {
+      const result = await fetchHikerDirect(pathname, parsedUrl.query);
+      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      return res.end(JSON.stringify(result.data));
+    } catch (err) {
+      console.warn('HikerAPI direct failed, using stalkeia.website backup:', err.message);
+      forwardToRemote(req, res, req.url);
+      return;
+    }
   }
 
   // 3. Instagram Proxy
