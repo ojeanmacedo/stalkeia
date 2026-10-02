@@ -1022,10 +1022,10 @@ const X = 600 * 1e3,
                         e.jsxs("p", {
                           className: "cta-pricing-amount",
                           children: [
-                            "R$ 37",
+                            "R$ 49",
                             e.jsx("span", {
                               className: "cta-pricing-cents",
-                              children: ",00",
+                              children: ",90",
                             }),
                           ],
                         }),
