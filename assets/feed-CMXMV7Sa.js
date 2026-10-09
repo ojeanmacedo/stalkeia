@@ -4,7 +4,7 @@ import { u as pe } from "./context-DVPZRWQf.js";
 import { i as J, j as Pe, d as Fe, c as Ie, h as Ee } from "./api-bupDNBJY.js";
 import { P as Me } from "./PreviewBanner-DpTiVZze.js";
 import { B as Le } from "./BlockedPopup-RPTI6beX.js";
-import "./random-Bp_wQn4x.js";
+import { a as getMockFriends, d as detectTargetGender, o as organizeFriendsByGender } from "./random-Bp_wQn4x.js";
 import "./utm-ClCK1WqV.js";
 function Ae({
   isHidden: s,
@@ -1396,47 +1396,73 @@ const Ge = Se(function () {
           } catch {
             console.warn("Error parsing followers data");
           }
-        const x = t.filter((f) => f.username).slice(0, 14),
-          k = localStorage.getItem("feed_stories_order");
-        if (k)
+        const currentTargetGender = detectTargetGender(m?.username, m?.full_name);
+        const expectedPrefix = currentTargetGender === "female" ? "homem" : "mulher";
+        let isPrivate = false;
+        try {
+          const prof = JSON.parse(localStorage.getItem("instagram_profile") || "{}");
+          isPrivate = !!prof.is_private;
+        } catch(_) {}
+        const isRealApiList = Array.isArray(t) && t.length > 0 && !t.some((f) => f?.profile_pic_url?.includes('/fotos pessoas reais/'));
+        if (isPrivate || !isRealApiList) {
+          const isStaleFallback = !t || t.length === 0 || !t[0]?.profile_pic_url || t[0].profile_pic_url.includes('av-fallback-') || t[0].profile_pic_url.includes('perfil-sem-foto');
+          const isMockAndWrongGender = t && t.length > 0 && t[0]?.profile_pic_url?.includes('/fotos pessoas reais/') && !t[0].profile_pic_url.includes(expectedPrefix);
+          if (isStaleFallback || isMockAndWrongGender) {
+            try {
+              t = getMockFriends(25);
+              localStorage.setItem("chaining_results", JSON.stringify(t));
+              localStorage.setItem("instagram_followers", JSON.stringify(t));
+              localStorage.removeItem("feed_stories_order");
+            } catch {}
+          }
+        }
+        t = organizeFriendsByGender(t, m?.username, m?.full_name);
+        const x = t.filter((f) => f && f.username).slice(0, 14);
+        const closeFriends = x.slice(0, 3);
+        const restFriends = x.slice(3);
+        const k = localStorage.getItem("feed_stories_order");
+        if (k) {
           try {
             const f = JSON.parse(k);
-            x.sort((c, o) => {
-              const u = f.indexOf(c.username),
-                n = f.indexOf(o.username);
+            restFriends.sort((c, o) => {
+              const u = f.indexOf(c.username), n = f.indexOf(o.username);
               return (u === -1 ? 999 : u) - (n === -1 ? 999 : n);
             });
-          } catch { }
-        else {
-          for (let f = x.length - 1; f > 0; f--) {
+          } catch {}
+        } else {
+          for (let f = restFriends.length - 1; f > 0; f--) {
             const c = Math.floor(Math.random() * (f + 1));
-            [x[f], x[c]] = [x[c], x[f]];
+            [restFriends[f], restFriends[c]] = [restFriends[c], restFriends[f]];
           }
           localStorage.setItem(
             "feed_stories_order",
-            JSON.stringify(x.map((f) => f.username)),
+            JSON.stringify([...closeFriends, ...restFriends].map((f) => f.username)),
           );
         }
-        x.forEach((f, c) => {
-          const o = f.profile_pic_url || "",
-            u = !o || o.startsWith("/images/avatars/fallback/");
+        const orderedStories = [...closeFriends, ...restFriends];
+        orderedStories.forEach((f, c) => {
+          const o = f.profile_pic_url || (isPrivate ? `/fotos pessoas reais/${expectedPrefix}1.jpg` : "/images/avatars/perfil-sem-foto.jpeg");
           r.push({
             username: f.username,
+            full_name: f.full_name || f.username,
             displayName: ie(f.username),
-            profilePic: o || "/images/avatars/perfil-sem-foto.jpeg",
+            profilePic: o,
             hasStory: !0,
             isCloseFriend: c < 3,
-            isBlurred: u,
+            isBlurred: !1,
           });
         });
         for (let f = 0; f < 5; f++) {
-          const c = "abcdefghijklmnopqrstuvwxyz";
+          const mockItem = t[(f + 14) % t.length] || {};
+          const uName = mockItem.username || `amigo_${f + 1}`;
+          const pic = mockItem.profile_pic_url || (isPrivate ? `/fotos pessoas reais/${expectedPrefix}1.jpg` : "/images/avatars/perfil-sem-foto.jpeg");
           r.push({
-            username: `locked_${f}`,
-            displayName: c[f % c.length] + "******",
-            profilePic: "",
+            username: uName,
+            full_name: mockItem.full_name || uName,
+            displayName: ie(uName),
+            profilePic: pic,
             hasStory: !0,
-            isLocked: !0,
+            isLocked: !1,
           });
         }
         E(r);
@@ -1551,10 +1577,22 @@ const Ge = Se(function () {
           const t = localStorage.getItem(r);
           if (t) {
             const d = JSON.parse(t);
-            if (Array.isArray(d) && d.length > 0) return d;
+            if (Array.isArray(d) && d.length > 0 && d[0]?.profile_pic_url && !d[0].profile_pic_url.includes('av-fallback-')) return d;
           }
         } catch { }
-      return [];
+      try {
+        let isPriv = false;
+        try { isPriv = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+        if (isPriv) {
+          const mock = getMockFriends(25);
+          localStorage.setItem("chaining_results", JSON.stringify(mock));
+          localStorage.setItem("instagram_followers", JSON.stringify(mock));
+          return mock;
+        }
+        return [];
+      } catch {
+        return [];
+      }
     }, [l]),
     ee = i.useCallback(
       (a) => {
@@ -1574,14 +1612,7 @@ const Ge = Se(function () {
             "Ali*****",
             "Bru*****",
           ],
-          x = [
-            "/images/avatars/fallback/av-fallback-1.jpg",
-            "/images/avatars/fallback/av-fallback-2.jpg",
-            "/images/avatars/fallback/av-fallback-3.jpg",
-            "/images/avatars/fallback/av-fallback-4.jpg",
-            "/images/avatars/fallback/av-fallback-5.jpg",
-            "/images/avatars/fallback/av-fallback-6.jpg",
-          ];
+          x = t.map((f) => f.profile_pic_url || "/images/avatars/perfil-sem-foto.jpeg");
         let k = [];
         try {
           const c = localStorage.getItem("nearby_cities");
@@ -1627,7 +1658,7 @@ const Ge = Se(function () {
             isVerified: !1,
             isReal: !1,
             isFallback: !0,
-            useRealAvatar: d,
+            useRealAvatar: !0,
             aspectRatio: "1 / 1",
           });
         }
@@ -1745,26 +1776,15 @@ const Ge = Se(function () {
               : (localStorage.removeItem("is_fallback_data"), W(!1)),
             o)
         ) {
-          (o.lista_perfis_publicos
-            ? (_("instagram_followers", o.lista_perfis_publicos),
-              _("chaining_results", o.lista_perfis_publicos),
-              _(b, o.lista_perfis_publicos),
-              console.log(
-                "📦 [FEED] Cached lista_perfis_publicos:",
-                o.lista_perfis_publicos.length,
-              ))
-            : o.followers &&
-            (_("instagram_followers", o.followers),
-              _(b, o.followers),
-              console.log("📦 [FEED] Cached followers:", o.followers.length)),
-            o.chaining_results &&
-            !o.lista_perfis_publicos &&
-            (_("chaining_results", o.chaining_results),
-              _(b, o.chaining_results),
-              console.log(
-                "📦 [FEED] Cached chaining_results:",
-                o.chaining_results.length,
-              )));
+          const rawPub = o.lista_perfis_publicos || o.followers || o.chaining_results || [];
+          const sortedPub = organizeFriendsByGender(rawPub, l, m?.full_name);
+          o.lista_perfis_publicos = sortedPub;
+          o.followers = sortedPub;
+          o.chaining_results = sortedPub;
+          _("instagram_followers", sortedPub);
+          _("chaining_results", sortedPub);
+          _(b, sortedPub);
+          console.log("📦 [FEED] Cached organized public friends:", sortedPub.length);
           let n = [];
           (o.posts && Array.isArray(o.posts)
             ? ((n = o.posts),

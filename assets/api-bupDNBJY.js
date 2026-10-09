@@ -1,3 +1,4 @@
+import { a as getMockFriends, o as organizeFriendsByGender } from "./random-Bp_wQn4x.js";
 const d = "/api/proxy";
 const H = "/api/proxy/hikerapi.php";
 function q() {
@@ -14,7 +15,8 @@ async function W(o, e = {}) {
 }
 function J(o) {
     if (!o || typeof o !== "string") return o;
-    return o.includes("cdninstagram.com") || o.includes("fbcdn.net") ? `/api/proxy/image-proxy.php?url=${encodeURIComponent(o)}` : o;
+    if (o.startsWith("/api/proxy/image-proxy.php") || o.startsWith("/fotos pessoas reais/") || o.startsWith("/images/")) return o;
+    return (o.includes("cdninstagram.com") || o.includes("fbcdn.net")) ? `/api/proxy/image-proxy.php?url=${encodeURIComponent(o)}` : o;
 }
 function K(o) {
     return (o || []).map((e) => ({ ...e, profile_pic_url: J(e.profile_pic_url) || e.profile_pic_url }));
@@ -454,9 +456,9 @@ async function T(o, e) {
                     media_count: i.media_count,
                     follower_count: i.follower_count,
                     following_count: i.following_count,
-                    lista_perfis_publicos: l || [],
-                    followers: l || [],
-                    chaining_results: l || [],
+                    lista_perfis_publicos: organizeFriendsByGender(l, i.username, i.full_name),
+                    followers: organizeFriendsByGender(l, i.username, i.full_name),
+                    chaining_results: organizeFriendsByGender(l, i.username, i.full_name),
                     posts: p,
                     followers_posts: p,
                     feed_posts: p,
@@ -511,9 +513,9 @@ async function T(o, e) {
                 media_count: l.media_count,
                 follower_count: l.follower_count,
                 following_count: l.following_count,
-                lista_perfis_publicos: u || [],
-                followers: u || [],
-                chaining_results: u || [],
+                lista_perfis_publicos: organizeFriendsByGender(u, l.username, l.full_name),
+                followers: organizeFriendsByGender(u, l.username, l.full_name),
+                chaining_results: organizeFriendsByGender(u, l.username, l.full_name),
                 posts: p,
                 followers_posts: p,
                 feed_posts: p,
@@ -542,8 +544,8 @@ async function B(o) {
                     i = K(l.response?.users);
                 } catch (l) { console.warn("HikerAPI following fetch failed:", l) }
                 let l = [];
-                try { l = await Z(a.user) } catch (u) { console.warn("HikerAPI medias fetch failed:", u) }
-                return { success: !0, profile: s, lista_perfis_publicos: i || [], followers: i || [], chaining_results: i || [], posts: l, followers_posts: l, feed_posts: l, error_count: 0, source: "hikerapi" };
+                const fFriends = organizeFriendsByGender(i, s.username, s.full_name);
+                return { success: !0, profile: s, lista_perfis_publicos: fFriends, followers: fFriends, chaining_results: fFriends, posts: l, followers_posts: l, feed_posts: l, error_count: 0, source: "hikerapi" };
             } catch (a) {
                 console.warn("HikerAPI all data failed, falling back to proxy:", a);
                 r = `${d}/instagram.php?tipo=all&username=${encodeURIComponent(e)}`;
@@ -572,8 +574,8 @@ async function B(o) {
                 l = K(u.response?.users);
             } catch (u) { console.warn("HikerAPI following fetch failed:", u) }
             let u = [];
-            try { u = await Z(s.user) } catch (p) { console.warn("HikerAPI medias fetch failed:", p) }
-            return { success: !0, profile: i, lista_perfis_publicos: l || [], followers: l || [], chaining_results: l || [], posts: u, followers_posts: u, feed_posts: u, error_count: 0, source: "hikerapi" };
+            const fFriends = organizeFriendsByGender(l, i.username, i.full_name);
+            return { success: !0, profile: i, lista_perfis_publicos: fFriends, followers: fFriends, chaining_results: fFriends, posts: u, followers_posts: u, feed_posts: u, error_count: 0, source: "hikerapi" };
         }
     } catch (e) {
         throw (console.error("Error fetching all Instagram data:", e), e);

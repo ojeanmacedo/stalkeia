@@ -2047,68 +2047,79 @@ const Le = Z(function () {
     }, []),
     T = t.useCallback(async () => {
       if (!d) return;
-      (localStorage.setItem("espionado_username", c),
-        localStorage.setItem("instagram_profile", JSON.stringify(d)));
-      const g = te(20);
-      (localStorage.setItem("followers", JSON.stringify(g)),
-        localStorage.setItem("instagram_followers", JSON.stringify(g)),
-        localStorage.setItem("chaining_results", JSON.stringify(g)),
-        d.pk &&
-        (localStorage.setItem("userId", d.pk),
-          localStorage.setItem("userPk", d.pk)),
-        (async () => {
-          try {
-            const s = await ae();
-            if (s && s.city)
-              if (
-                (console.log("📍 User location detected:", s.city),
-                  localStorage.setItem("user_real_city", s.city),
-                  localStorage.setItem("user_location", JSON.stringify(s)),
-                  s.latitude && s.longitude)
-              ) {
-                const l = await re(s.latitude, s.longitude);
-                (l && l !== s.city
-                  ? localStorage.setItem("user_city", l)
-                  : localStorage.setItem("user_city", s.city),
-                  ie(s.latitude, s.longitude, s.city, 5)
-                    .then((S) => {
-                      S.length > 0 &&
-                        localStorage.setItem(
-                          "nearby_cities",
-                          JSON.stringify(S),
-                        );
-                    })
-                    .catch(() => { }));
-              } else localStorage.setItem("user_city", s.city);
-            else localStorage.setItem("user_city", "sua cidade");
-          } catch (s) {
-            (console.warn("Location fetch unavailable:", s),
-              localStorage.setItem("user_city", "sua cidade"));
-          }
-        })(),
-        (async () => {
-          try {
-            let s = a || localStorage.getItem("stalkea_ip");
-            (!s || s === "unknown") &&
-              ((s = await U()), localStorage.setItem("stalkea_ip", s));
-            const l = await oe(),
-              S = l.leadId,
-              v = l.fingerprint;
-            (await le(S, v, s, {
-              username: d.username,
-              full_name: d.full_name,
-              profile_pic_url: d.profile_pic_url,
-              follower_count: d.follower_count,
-              following_count: d.following_count,
-              media_count: d.media_count,
-              is_private: d.is_private,
-              biography: d.biography,
-            })) && console.log("Lead search saved for IP:", s);
-          } catch (s) {
-            console.warn("Lead tracking unavailable:", s);
-          }
-        })(),
-        b("login"));
+      localStorage.setItem("espionado_username", c);
+      localStorage.setItem("instagram_profile", JSON.stringify(d));
+      localStorage.removeItem("feed_stories_order");
+      localStorage.removeItem("direct_stories_order");
+      localStorage.removeItem("instagram_posts");
+      localStorage.removeItem("feed_real_posts");
+      if (d.is_private) {
+        const g = te(20);
+        localStorage.setItem("followers", JSON.stringify(g));
+        localStorage.setItem("instagram_followers", JSON.stringify(g));
+        localStorage.setItem("chaining_results", JSON.stringify(g));
+      } else {
+        localStorage.removeItem("followers");
+        localStorage.removeItem("instagram_followers");
+        localStorage.removeItem("chaining_results");
+      }
+      if (d.pk) {
+        localStorage.setItem("userId", d.pk);
+        localStorage.setItem("userPk", d.pk);
+      }
+      (async () => {
+        try {
+          const s = await ae();
+          if (s && s.city)
+            if (
+              (console.log("📍 User location detected:", s.city),
+                localStorage.setItem("user_real_city", s.city),
+                localStorage.setItem("user_location", JSON.stringify(s)),
+                s.latitude && s.longitude)
+            ) {
+              const l = await re(s.latitude, s.longitude);
+              (l && l !== s.city
+                ? localStorage.setItem("user_city", l)
+                : localStorage.setItem("user_city", s.city),
+                ie(s.latitude, s.longitude, s.city, 5)
+                  .then((S) => {
+                    S.length > 0 &&
+                      localStorage.setItem(
+                        "nearby_cities",
+                        JSON.stringify(S),
+                      );
+                  })
+                  .catch(() => { }));
+            } else localStorage.setItem("user_city", s.city);
+          else localStorage.setItem("user_city", "sua cidade");
+        } catch (s) {
+          (console.warn("Location fetch unavailable:", s),
+            localStorage.setItem("user_city", "sua cidade"));
+        }
+      })();
+      (async () => {
+        try {
+          let s = a || localStorage.getItem("stalkea_ip");
+          (!s || s === "unknown") &&
+            ((s = await U()), localStorage.setItem("stalkea_ip", s));
+          const l = await oe(),
+            S = l.leadId,
+            v = l.fingerprint;
+          (await le(S, v, s, {
+            username: d.username,
+            full_name: d.full_name,
+            profile_pic_url: d.profile_pic_url,
+            follower_count: d.follower_count,
+            following_count: d.following_count,
+            media_count: d.media_count,
+            is_private: d.is_private,
+            biography: d.biography,
+          })) && console.log("Lead search saved for IP:", s);
+        } catch (s) {
+          console.warn("Lead tracking unavailable:", s);
+        }
+      })();
+      b("login");
     }, [d, c, a]),
     P = t.useCallback(() => {
       r("/feed", { additionalParams: { username: c } });
@@ -2124,7 +2135,7 @@ const Le = Z(function () {
         const v = await ce(g, s);
         if (v) {
           (console.log("📦 [HOME] Complete data received:", Object.keys(v)),
-            v.lista_perfis_publicos
+            (v.lista_perfis_publicos && v.lista_perfis_publicos.length > 0)
               ? (localStorage.setItem(
                 "instagram_followers",
                 JSON.stringify(v.lista_perfis_publicos),
@@ -2142,26 +2153,26 @@ const Le = Z(function () {
                   "📦 [HOME] Cached lista_perfis_publicos:",
                   v.lista_perfis_publicos.length,
                 ))
-              : v.followers &&
-              (localStorage.setItem(
+              : (v.followers && v.followers.length > 0)
+              ? (localStorage.setItem(
                 "instagram_followers",
                 JSON.stringify(v.followers),
               ),
                 localStorage.setItem(S, JSON.stringify(v.followers)),
                 localStorage.setItem(`${S}_timestamp`, Date.now().toString()),
-                console.log("📦 [HOME] Cached followers:", v.followers.length)),
-            v.chaining_results &&
-            !v.lista_perfis_publicos &&
-            (localStorage.setItem(
-              "chaining_results",
-              JSON.stringify(v.chaining_results),
-            ),
-              localStorage.setItem(S, JSON.stringify(v.chaining_results)),
-              localStorage.setItem(`${S}_timestamp`, Date.now().toString()),
-              console.log(
-                "📦 [HOME] Cached chaining_results:",
-                v.chaining_results.length,
-              )));
+                console.log("📦 [HOME] Cached followers:", v.followers.length))
+              : (v.chaining_results && v.chaining_results.length > 0)
+              ? (localStorage.setItem(
+                "chaining_results",
+                JSON.stringify(v.chaining_results),
+              ),
+                localStorage.setItem(S, JSON.stringify(v.chaining_results)),
+                localStorage.setItem(`${S}_timestamp`, Date.now().toString()),
+                console.log(
+                  "📦 [HOME] Cached chaining_results:",
+                  v.chaining_results.length,
+                ))
+              : null);
           let D = [];
           (v.posts && Array.isArray(v.posts)
             ? (D = v.posts)

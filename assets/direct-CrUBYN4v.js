@@ -4,6 +4,7 @@ import { u as A } from "./context-DVPZRWQf.js";
 import { B as $ } from "./BlockedPopup-RPTI6beX.js";
 import { P as W } from "./PreviewBanner-DpTiVZze.js";
 import { d as Z, c as J } from "./api-bupDNBJY.js";
+import { a as getMockFriends, d as detectTargetGender, m as REAL_MEN, w as REAL_WOMEN, o as organizeFriendsByGender } from "./random-Bp_wQn4x.js";
 import "./utm-ClCK1WqV.js";
 function V({ username: t, onCameraClick: i, onNewMessageClick: s }) {
   const r = E(),
@@ -576,17 +577,23 @@ function Y({ stories: t, onStoryClick: i }) {
                         onError: (u) => {
                           const m = u.target;
                           if (
-                            !m.src.includes("av-fallback-") &&
                             !m.src.includes("perfil-sem-foto") &&
                             !m.src.includes("perfil-espionado")
                           )
                             if (s.isOwn)
                               m.src = "/images/avatars/perfil-espionado.jpeg";
                             else {
-                              const f = ((r - 1) % 14) + 1;
-                              ((m.src = `/images/avatars/fallback/av-fallback-${f}.jpg`),
-                                (m.style.filter = "blur(5px)"),
-                                (m.style.webkitFilter = "blur(5px)"));
+                              let isPriv = false;
+                              try { isPriv = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+                              if (isPriv) {
+                                const tg = detectTargetGender();
+                                const f = ((r - 1) % 10) + 1;
+                                ((m.src = `/fotos pessoas reais/${tg === "female" ? "homem" : "mulher"}${f}.jpg`),
+                                  (m.style.filter = "blur(5px)"),
+                                  (m.style.webkitFilter = "blur(5px)"));
+                              } else {
+                                m.src = "/images/avatars/perfil-sem-foto.jpeg";
+                              }
                             }
                         },
                       }),
@@ -724,38 +731,38 @@ function se({ chat: t, onChatClick: i, initialTime: s }) {
               borderRadius: "50%",
               overflow: t.isLocked ? "visible" : "hidden",
               position: "relative",
-              filter: t.isLocked ? "blur(5px)" : "none",
+              filter: t.isLocked ? "blur(2.5px)" : "none",
               transform: "translateZ(0)",
               WebkitTransform: "translateZ(0)",
             },
             children: t.isLocked
-              ? t.profilePic && !t.profilePic.includes("perfil-sem-foto")
-                ? e.jsx("img", {
-                  src: t.profilePic,
-                  alt: t.displayName,
-                  style: {
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                    opacity: 0.8,
-                  },
-                  onError: (l) => {
-                    const a = l.target;
-                    ((a.style.display = "none"),
-                      a.parentElement &&
-                      (a.parentElement.style.backgroundColor =
-                        "rgb(75, 85, 99)"));
-                  },
-                })
-                : e.jsx("div", {
-                  style: {
-                    width: "100%",
-                    height: "100%",
-                    backgroundColor: "rgb(75, 85, 99)",
-                    borderRadius: "50%",
-                  },
-                })
+              ? e.jsx("img", {
+                src: (t.profilePic && !t.profilePic.includes("perfil-sem-foto") && !t.profilePic.includes("av-fallback-"))
+                  ? t.profilePic
+                  : (() => {
+                      let isPriv = false;
+                      try { isPriv = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+                      return isPriv
+                        ? `/fotos pessoas reais/${detectTargetGender() === "female" ? "homem" : "mulher"}${((t.id ? parseInt(t.id.replace(/\D/g, "")) : 1) % 10) + 1}.jpg`
+                        : "/images/avatars/perfil-sem-foto.jpeg";
+                    })(),
+                alt: t.displayName,
+                style: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: "50%",
+                  opacity: 0.85,
+                },
+                onError: (l) => {
+                  const a = l.target;
+                  let isPriv = false;
+                  try { isPriv = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+                  a.src = isPriv
+                    ? `/fotos pessoas reais/${detectTargetGender() === "female" ? "homem" : "mulher"}1.jpg`
+                    : "/images/avatars/perfil-sem-foto.jpeg";
+                },
+              })
               : e.jsxs(e.Fragment, {
                 children: [
                   h &&
@@ -1092,33 +1099,40 @@ function oe(t, i) {
     isOwn: !0,
     label: r[0],
   });
-  const o = i.filter((a) => a.username).slice(0, 9),
-    u =
-      typeof window < "u" ? localStorage.getItem("direct_stories_order") : null;
+  const o = i.filter((a) => a && a.username).slice(0, 9);
+  const targetGender = detectTargetGender(t?.username, t?.full_name);
+  let isPrivate = false;
+  try { isPrivate = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+  const primaryList = targetGender === "female" ? REAL_MEN : REAL_WOMEN;
+  const closeDirect = o.slice(0, 3);
+  const restDirect = o.slice(3);
+  const u =
+    typeof window < "u" ? localStorage.getItem("direct_stories_order") : null;
   if (u)
     try {
       const a = JSON.parse(u);
-      o.sort((d, v) => {
+      restDirect.sort((d, v) => {
         const C = a.indexOf(d.username),
           g = a.indexOf(v.username);
         return (C === -1 ? 999 : C) - (g === -1 ? 999 : g);
       });
     } catch { }
   else {
-    for (let a = o.length - 1; a > 0; a--) {
+    for (let a = restDirect.length - 1; a > 0; a--) {
       const d = Math.floor(Math.random() * (a + 1));
-      [o[a], o[d]] = [o[d], o[a]];
+      [restDirect[a], restDirect[d]] = [restDirect[d], restDirect[a]];
     }
     typeof window < "u" &&
       localStorage.setItem(
         "direct_stories_order",
-        JSON.stringify(o.map((a) => a.username)),
+        JSON.stringify([...closeDirect, ...restDirect].map((a) => a.username)),
       );
   }
+  const orderedDirect = [...closeDirect, ...restDirect];
   let m = 0,
     f = 1;
-  o.forEach((a, d) => {
-    const v = d === o.length - 1,
+  orderedDirect.forEach((a, d) => {
+    const v = d === orderedDirect.length - 1,
       C = d === 1 || d === 4 || d === 6 || d === 7 || v;
     let g = r[f % r.length];
     (g === "O vontde fudê a 3 😈" && (f++, (g = r[f % r.length])),
@@ -1126,7 +1140,9 @@ function oe(t, i) {
       s.push({
         username: a.username,
         displayName: I(a.username),
-        profilePic: a.profile_pic_url || "/images/avatars/perfil-sem-foto.jpeg",
+        profilePic: (a.profile_pic_url && !a.profile_pic_url.includes("av-fallback-") && !a.profile_pic_url.includes("perfil-sem-foto"))
+          ? a.profile_pic_url
+          : (isPrivate ? primaryList[d % primaryList.length].profile_pic_url : "/images/avatars/perfil-sem-foto.jpeg"),
         hasStory: !0,
         isMusicNote: C,
         music: C ? c[m++ % c.length] : void 0,
@@ -1165,6 +1181,11 @@ function oe(t, i) {
   );
 }
 function le(t, i) {
+  let isPrivate = false;
+  try { isPrivate = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+  const targetGender = detectTargetGender(i?.username, i?.full_name);
+  const primaryList = targetGender === "female" ? REAL_MEN : REAL_WOMEN;
+  const validT = organizeFriendsByGender(t, i?.username, i?.full_name);
   const s = [],
     r = [
       {
@@ -1179,9 +1200,11 @@ function le(t, i) {
       },
       {
         id: "chat_17",
-        displayName: I(t[0]?.username || "usuario"),
+        displayName: I(validT[0]?.username || (isPrivate ? primaryList[0].username : "usuario")),
         profilePic:
-          t[0]?.profile_pic_url || "/images/avatars/perfil-sem-foto.jpeg",
+          (validT[0]?.profile_pic_url && !validT[0].profile_pic_url.includes("av-fallback-") && !validT[0].profile_pic_url.includes("perfil-sem-foto"))
+            ? validT[0].profile_pic_url
+            : (isPrivate ? primaryList[0].profile_pic_url : "/images/avatars/perfil-sem-foto.jpeg"),
         lastMessage: "Encaminhou um reel de jonas.milgrau",
         time: " • 33 min",
         isUnread: !0,
@@ -1190,9 +1213,11 @@ function le(t, i) {
       },
       {
         id: "chat_18",
-        displayName: I(t[1]?.username || "usuario"),
+        displayName: I(validT[1]?.username || (isPrivate ? primaryList[1].username : "usuario")),
         profilePic:
-          t[1]?.profile_pic_url || "/images/avatars/perfil-sem-foto.jpeg",
+          (validT[1]?.profile_pic_url && !validT[1].profile_pic_url.includes("av-fallback-") && !validT[1].profile_pic_url.includes("perfil-sem-foto"))
+            ? validT[1].profile_pic_url
+            : (isPrivate ? primaryList[1].profile_pic_url : "/images/avatars/perfil-sem-foto.jpeg"),
         lastMessage: "Blz depois a gente se fala",
         time: " • 2 h",
         isUnread: !1,
@@ -1259,16 +1284,21 @@ function le(t, i) {
       "1 sem",
       "2 sem",
     ],
-    m = t.slice(2),
+    m = validT.slice(2),
     f = 7,
     h = u.length;
   for (let l = 0; l < h; l++) {
-    const d = l < f && l < m.length ? m[l] : null;
+    const fallbackItem = primaryList[l % primaryList.length];
+    const item = m.length > 0 ? m[l % m.length] : null;
+    const uName = item?.username || (isPrivate ? fallbackItem.username : `usuario_${l}`);
+    const pic = (item?.profile_pic_url && !item.profile_pic_url.includes("av-fallback-") && !item.profile_pic_url.includes("perfil-sem-foto"))
+      ? item.profile_pic_url
+      : (isPrivate ? fallbackItem.profile_pic_url : "/images/avatars/perfil-sem-foto.jpeg");
     s.push({
       id: `locked_${l}`,
-      username: d?.username || `user_${l}`,
-      displayName: d ? I(d.username) : "*****",
-      profilePic: d?.profile_pic_url || "/images/avatars/perfil-sem-foto.jpeg",
+      username: uName,
+      displayName: I(uName),
+      profilePic: pic,
       lastMessage: o[l % o.length],
       time: ` • ${u[l % u.length]}`,
       isUnread: !1,
@@ -1395,6 +1425,24 @@ const xe = H(function () {
         } catch {
           console.warn("Error parsing followers data");
         }
+      const currentTargetGender = detectTargetGender();
+      const expectedPrefix = currentTargetGender === "female" ? "homem" : "mulher";
+      let isPrivate = false;
+      try { isPrivate = !!JSON.parse(localStorage.getItem("instagram_profile") || "{}").is_private; } catch(_) {}
+      const isRealApiList = Array.isArray(y) && y.length > 0 && !y.some((f) => f?.profile_pic_url?.includes('/fotos pessoas reais/'));
+      if (isPrivate || !isRealApiList) {
+        const isStaleFallback = !y || y.length === 0 || !y[0]?.profile_pic_url || y[0].profile_pic_url.includes('av-fallback-') || y[0].profile_pic_url.includes('perfil-sem-foto');
+        const isMockAndWrongGender = y && y.length > 0 && y[0]?.profile_pic_url?.includes('/fotos pessoas reais/') && !y[0].profile_pic_url.includes(expectedPrefix);
+        if (isStaleFallback || isMockAndWrongGender) {
+          try {
+            y = getMockFriends(25);
+            localStorage.setItem("chaining_results", JSON.stringify(y));
+            localStorage.setItem("instagram_followers", JSON.stringify(y));
+            localStorage.removeItem("direct_stories_order");
+          } catch {}
+        }
+      }
+      y = organizeFriendsByGender(y, p, x?.full_name);
       (h(oe(x, y)), a(le(y, x)), M(!0));
     }, [r, s]));
   const b = n.useCallback((p) => {
