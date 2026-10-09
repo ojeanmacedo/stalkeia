@@ -312,8 +312,28 @@ function forwardToRemote(req, res, targetPath, postData = null) {
 }
 
 module.exports = async (req, res) => {
-  const origin = req.headers['origin'] || '*';
-  res.setHeader('Access-Control-Allow-Origin', origin);
+  const origin = req.headers['origin'] || '';
+  const referer = req.headers['referer'] || '';
+  const host = req.headers['host'] || '';
+  const siteKey = req.headers['x-site-key'] || '';
+
+  // Permite estritamente apenas o domínio stalkea.top (e subdomínios como oficial.stalkea.top) ou localhost para testes
+  const isAllowedOrigin = 
+    origin.includes('stalkea.top') || 
+    referer.includes('stalkea.top') || 
+    host.includes('stalkea.top') ||
+    origin.includes('localhost') || 
+    referer.includes('localhost') || 
+    host.includes('localhost');
+
+  const isValidSecret = siteKey === 'ad89275a6835799e13a8e780c480b8646e80512e4a63183c' || siteKey === SITE_KEY;
+
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else if (isValidSecret) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
 
@@ -324,6 +344,15 @@ module.exports = async (req, res) => {
 
   const parsedUrl = url.parse(req.url, true);
   let pathname = parsedUrl.pathname || '';
+
+  // Bloqueio de clonadores: impede qualquer requisição de domínios não autorizados
+  if (!pathname.includes('image-proxy.php')) {
+    if (!isAllowedOrigin && !isValidSecret) {
+      res.statusCode = 403;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'Acesso negado: Origem não autorizada.' }));
+    }
+  }
 
   // 1. Leads Status / Save
   if (pathname.includes('leads.php')) {

@@ -508,13 +508,40 @@ const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers['origin'] || '';
+  const referer = req.headers['referer'] || '';
+  const host = req.headers['host'] || '';
+  const siteKey = req.headers['x-site-key'] || '';
+
+  const isAllowedOrigin = 
+    origin.includes('stalkea.top') || 
+    referer.includes('stalkea.top') || 
+    host.includes('stalkea.top') ||
+    origin.includes('localhost') || 
+    referer.includes('localhost') || 
+    host.includes('localhost');
+
+  const isValidSecret = siteKey === OUR_SITE_KEY || siteKey === SITE_KEY;
+
+  if (isAllowedOrigin) {
+    res.setHeader('Access-Control-Allow-Origin', origin || '*');
+  } else if (isValidSecret) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     return res.end();
+  }
+
+  if (pathname.startsWith('/api/') && !pathname.includes('image-proxy.php')) {
+    if (!isAllowedOrigin && !isValidSecret) {
+      res.writeHead(403, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Acesso negado: Origem não autorizada.' }));
+    }
   }
 
   // 1. Leads Status / Save
