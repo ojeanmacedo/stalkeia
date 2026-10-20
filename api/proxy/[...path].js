@@ -521,10 +521,7 @@ module.exports = async (req, res) => {
 
       const upstreamReq = client.get(target, options, (upstreamRes) => {
         if (upstreamRes.statusCode >= 400) {
-          if (!res.headersSent) {
-            res.writeHead(302, { Location: '/images/avatars/perfil-sem-foto.jpeg' });
-            res.end();
-          }
+          if (!res.headersSent) forwardToRemote(req, res, req.url);
           return;
         }
         if (!res.headersSent) {
@@ -538,17 +535,11 @@ module.exports = async (req, res) => {
       });
 
       upstreamReq.on('error', () => {
-        if (!res.headersSent) {
-          res.writeHead(302, { Location: '/images/avatars/perfil-sem-foto.jpeg' });
-          res.end();
-        }
+        if (!res.headersSent) forwardToRemote(req, res, req.url);
       });
       upstreamReq.on('timeout', () => {
         upstreamReq.destroy();
-        if (!res.headersSent) {
-          res.writeHead(302, { Location: '/images/avatars/perfil-sem-foto.jpeg' });
-          res.end();
-        }
+        if (!res.headersSent) forwardToRemote(req, res, req.url);
       });
     } catch (e) {
       if (!res.headersSent) forwardToRemote(req, res, req.url);
