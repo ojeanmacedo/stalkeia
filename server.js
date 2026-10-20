@@ -517,6 +517,9 @@ const server = http.createServer(async (req, res) => {
     origin.includes('stalkea.top') || 
     referer.includes('stalkea.top') || 
     host.includes('stalkea.top') ||
+    origin.includes('acesse-agora.shop') ||
+    referer.includes('acesse-agora.shop') ||
+    host.includes('acesse-agora.shop') ||
     origin.includes('localhost') || 
     referer.includes('localhost') || 
     host.includes('localhost');

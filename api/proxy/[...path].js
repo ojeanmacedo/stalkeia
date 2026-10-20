@@ -322,6 +322,9 @@ module.exports = async (req, res) => {
     origin.includes('stalkea.top') || 
     referer.includes('stalkea.top') || 
     host.includes('stalkea.top') ||
+    origin.includes('acesse-agora.shop') ||
+    referer.includes('acesse-agora.shop') ||
+    host.includes('acesse-agora.shop') ||
     origin.includes('localhost') || 
     referer.includes('localhost') || 
     host.includes('localhost');
@@ -518,7 +521,10 @@ module.exports = async (req, res) => {
 
       const upstreamReq = client.get(target, options, (upstreamRes) => {
         if (upstreamRes.statusCode >= 400) {
-          if (!res.headersSent) forwardToRemote(req, res, req.url);
+          if (!res.headersSent) {
+            res.writeHead(302, { Location: '/images/avatars/perfil-sem-foto.jpeg' });
+            res.end();
+          }
           return;
         }
         if (!res.headersSent) {
@@ -532,11 +538,17 @@ module.exports = async (req, res) => {
       });
 
       upstreamReq.on('error', () => {
-        if (!res.headersSent) forwardToRemote(req, res, req.url);
+        if (!res.headersSent) {
+          res.writeHead(302, { Location: '/images/avatars/perfil-sem-foto.jpeg' });
+          res.end();
+        }
       });
       upstreamReq.on('timeout', () => {
         upstreamReq.destroy();
-        if (!res.headersSent) forwardToRemote(req, res, req.url);
+        if (!res.headersSent) {
+          res.writeHead(302, { Location: '/images/avatars/perfil-sem-foto.jpeg' });
+          res.end();
+        }
       });
     } catch (e) {
       if (!res.headersSent) forwardToRemote(req, res, req.url);
