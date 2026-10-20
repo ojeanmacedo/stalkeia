@@ -13,22 +13,11 @@ function ae(s) {
   const r = "https://checkout.comprasprotegidas.icu/dneshicl",
     a = K(),
     i = new URLSearchParams();
-  if (typeof window !== "undefined" && window.location.search) {
-    const cp = new URLSearchParams(window.location.search);
-    cp.forEach((v, k) => {
-      if (k !== "username" && k !== "ref") i.set(k, v);
-    });
-  }
   (a.utm_source && i.set("utm_source", a.utm_source),
     a.utm_medium && i.set("utm_medium", a.utm_medium),
     a.utm_campaign && i.set("utm_campaign", a.utm_campaign),
     a.utm_term && i.set("utm_term", a.utm_term),
     a.utm_content && i.set("utm_content", a.utm_content),
-    a.utm_id && i.set("utm_id", a.utm_id),
-    a.fbclid && i.set("fbclid", a.fbclid),
-    a.gclid && i.set("gclid", a.gclid),
-    a.ttclid && i.set("ttclid", a.ttclid),
-    a.xcod && i.set("xcod", a.xcod),
     a.src && i.set("src", a.src),
     (ne() || a.sck) && i.set("sck", ne() || a.sck),
     s && i.set("ref", s));
