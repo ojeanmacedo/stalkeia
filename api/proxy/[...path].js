@@ -280,6 +280,12 @@ function forwardToRemote(req, res, targetPath, postData = null) {
   }
 
   const upstreamReq = https.request(options, (upstreamRes) => {
+    if (upstreamRes.statusCode >= 400 && req.url && req.url.includes('image-proxy.php')) {
+      if (!res.headersSent) {
+        res.writeHead(302, { 'Location': '/fotos pessoas reais/homem1.jpg' });
+        return res.end();
+      }
+    }
     if (!res.headersSent) {
       res.writeHead(upstreamRes.statusCode || 200, {
         'Content-Type': upstreamRes.headers['content-type'] || 'application/json',
