@@ -54,7 +54,21 @@
     </script>
     <script src="/assets/url-interceptor.js"></script>
     <script src="/assets/funnel-extensions.js"></script>
-  </head>
+  
+    <!-- cleanup-mock-cache -->
+    <script>
+      try {
+        var prof = localStorage.getItem("instagram_profile") || "";
+        if (prof.includes('"media_count":142') || prof.includes('"follower_count":1250') || prof.includes("perfil-sem-foto")) {
+          localStorage.removeItem("instagram_profile");
+          localStorage.removeItem("espionado_username");
+          localStorage.removeItem("blocked_previous_profile");
+          localStorage.removeItem("blocked_previous_username");
+          console.log("[STALKEA] Old mock cache cleared from localStorage");
+        }
+      } catch (e) {}
+    </script>
+</head>
 
   <body class="font-inter antialiased">
     <script>
@@ -90,7 +104,7 @@
         },
       }).pipeThrough(new TextEncoderStream());
     </script>
-    <script src="/assets/manifest-958455cb.js"></script>
+    <script src="/assets/manifest-v2.js?v=1792547678376"></script>
     <script type="module">
       import * as route0 from "/assets/root-VdaBH0Ih.js";
       window.__reactRouterRouteModules = {
