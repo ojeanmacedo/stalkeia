@@ -431,8 +431,6 @@ module.exports = async (req, res) => {
         console.warn('Remote hiker perfil fetch failed in instagram.php:', e.message);
       }
     }
-    const tipo = parsedUrl.query.tipo;
-    const userParam = (parsedUrl.query.username || '').replace(/^@+/, '').trim();
     if (tipo === 'all' || tipo === 'busca_completa') {
       try {
         const uRes = await fetchRemoteHiker('/v2/user/by/username', { username: userParam });
