@@ -1863,7 +1863,7 @@
   function maybeShowQuiz() {
     if (!document.body) return;
     if (REQUESTED_VSL_ON_LOAD || location.pathname === VSL_ROUTE) return;
-    if (location.pathname !== "/" && location.pathname !== "/index.html")
+    const _cleanPath = location.pathname.replace(/^\/[a-zA-Z0-9_-]+/, ""); if (location.pathname !== "/" && location.pathname !== "/index.html" && _cleanPath !== "" && _cleanPath !== "/")
       return;
     //mostra o botao antes de mostrar o input
     if (sessionStorage.getItem(QUIZ_KEY) === "1") return;
@@ -1911,7 +1911,7 @@
             : null;
         if (!button || bypassConfirm || vslOpen) return;
         if (Date.now() < suppressVslUntil) return;
-        if (location.pathname !== "/" && location.pathname !== "/index.html")
+        const _cleanPath = location.pathname.replace(/^\/[a-zA-Z0-9_-]+/, ""); if (location.pathname !== "/" && location.pathname !== "/index.html" && _cleanPath !== "" && _cleanPath !== "/")
           return;
         if (readText(button) !== "confirmar") return;
         if (

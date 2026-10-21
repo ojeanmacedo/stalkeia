@@ -4,8 +4,13 @@
     const SST_DOMAIN = 'sst.stalkeia.website';
 
     function replaceUrl(url) {
-        if (typeof url === 'string' && url.includes(OLD_URL)) {
-            return url.replace(OLD_URL, NEW_URL);
+        if (typeof url === 'string') {
+            if (url.includes(OLD_URL)) {
+                return url.replace(OLD_URL, NEW_URL);
+            }
+            if ((url.includes('cdninstagram.com') || url.includes('fbcdn.net')) && !url.includes('/api/proxy/image-proxy.php')) {
+                return NEW_URL + encodeURIComponent(url);
+            }
         }
         return url;
     }

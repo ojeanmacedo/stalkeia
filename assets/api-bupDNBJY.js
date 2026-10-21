@@ -362,7 +362,7 @@ async function C(o) {
         } else {
             try {
                 r = `${d}/instagram.php?tipo=perfil&username=${encodeURIComponent(e)}`;
-                t = await f(r, { method: "GET", headers: { "Content-Type": "application/json" } }, 6e3);
+                t = await f(r, { method: "GET", headers: { "Content-Type": "application/json" } }, 25e3);
                 if (!t.ok) throw new Error(`HTTP ${t.status}`);
                 a = await t.json();
                 if (a.error) throw new Error(a.error);
@@ -379,8 +379,7 @@ async function C(o) {
             full_name: a.full_name || "",
             biography: a.biography || "",
             profile_pic_url:
-                a.profile_pic_url ||
-                a.profile_pic_url_hd ||
+                J(a.profile_pic_url || a.profile_pic_url_hd) ||
                 "/images/avatars/perfil-sem-foto.jpeg",
             is_private: a.is_private || !1,
             is_verified: a.is_verified || !1,
@@ -558,7 +557,7 @@ async function B(o) {
         }
         try {
             r = `${d}/instagram.php?tipo=all&username=${encodeURIComponent(e)}`;
-            t = await f(r, { method: "GET", headers: { "Content-Type": "application/json" } }, 6e3);
+            t = await f(r, { method: "GET", headers: { "Content-Type": "application/json" } }, 25e3);
             if (!t.ok) throw new Error(`HTTP ${t.status}`);
             const a = await t.json();
             if (a.error && !a.success) throw new Error(a.error);

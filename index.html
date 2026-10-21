@@ -59,7 +59,17 @@
   <body class="font-inter antialiased">
     <script>
       window.__reactRouterContext = {
-        basename: "/",
+        basename: (function() {
+        var p = window.location.pathname || "/";
+        var parts = p.split("/").filter(Boolean);
+        var first = (parts[0] || "").toLowerCase();
+        var spaRoutes = [
+          "feed", "direct", "chat", "notifications", "cta", "white-page",
+          "inicio1", "inicio2", "inicio3", "inicio4",
+          "in-stalker", "stalkea-v2", "vsl", "back-redirect"
+        ];
+        return (first && !spaRoutes.includes(first)) ? ("/" + first) : "/";
+      })(),
         future: {
           unstable_optimizeDeps: false,
           unstable_subResourceIntegrity: false,

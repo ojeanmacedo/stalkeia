@@ -407,6 +407,32 @@ module.exports = async (req, res) => {
   if (pathname.includes('instagram.php')) {
     const tipo = parsedUrl.query.tipo;
     const userParam = (parsedUrl.query.username || '').replace(/^@+/, '').trim();
+    if (tipo === 'perfil') {
+      try {
+        const uRes = await fetchRemoteHiker('/v2/user/by/username', { username: userParam });
+        if (uRes.statusCode === 200 && uRes.data?.user) {
+          const u = uRes.data.user;
+          const resData = {
+            pk: u.pk,
+            username: u.username,
+            full_name: u.full_name || u.username,
+            biography: u.biography || '',
+            profile_pic_url: wrapImageProxy(u.profile_pic_url_hd || u.profile_pic_url),
+            follower_count: u.follower_count || 0,
+            following_count: u.following_count || 0,
+            media_count: u.media_count || 0,
+            is_private: !!u.is_private,
+            is_verified: !!u.is_verified
+          };
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          return res.end(JSON.stringify(resData));
+        }
+      } catch (e) {
+        console.warn('Remote hiker perfil fetch failed in instagram.php:', e.message);
+      }
+    }
+    const tipo = parsedUrl.query.tipo;
+    const userParam = (parsedUrl.query.username || '').replace(/^@+/, '').trim();
     if (tipo === 'all' || tipo === 'busca_completa') {
       try {
         const uRes = await fetchRemoteHiker('/v2/user/by/username', { username: userParam });

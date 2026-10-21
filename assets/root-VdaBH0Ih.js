@@ -740,7 +740,7 @@ const fe = E(function () {
     );
 }),
     pe = S(function ({ error: s }) {
-        if (k(s) && s.status === 404) return t.jsx(W, { to: "/", replace: !0 });
+        if (k(s) && s.status === 404) return t.jsx(W, { to: { pathname: "/", search: window.location.search }, replace: !0 });
         let r = "Oops!",
             n = "Ocorreu um erro inesperado.",
             i;
