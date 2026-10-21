@@ -36,7 +36,7 @@
   const APP_TEXT = "#f9f9f9";
   const APP_MUTED = "#9ca3af";
   const APP_BORDER = "rgba(255,255,255,0.08)";
-  const LOCAL_IMAGE_PROXY = "/api/proxy/image-proxy.php?url=";
+  const LOCAL_IMAGE_PROXY = (typeof window !== "undefined" && window.location ? window.location.origin : "") + "/api/proxy/image-proxy.php?url=";
   const DEFAULT_VSL_EMBED_BASE =
     "https://scripts.converteai.net/d1eca794-9532-407d-999d-9c6685f29657/players/6a02666213e1196421810c92/v4/embed.html";
   const CONFIG_VIDEO_IFRAME_URL = window.STALKEA_VSL_IFRAME_URL || "";

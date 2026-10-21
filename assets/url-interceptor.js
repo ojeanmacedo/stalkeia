@@ -1,6 +1,6 @@
 (function () {
     const OLD_URL = 'https://proxt-insta.projetinho-solo.workers.dev';
-    const NEW_URL = '/api/proxy/image-proxy.php?url=';
+    const NEW_URL = (typeof window !== 'undefined' && window.location ? window.location.origin : '') + '/api/proxy/image-proxy.php?url=';
     const SST_DOMAIN = 'sst.stalkeia.website';
 
     function replaceUrl(url) {
